@@ -12,7 +12,7 @@ public class FetchImage : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        StartCoroutine(getTexture(testImage));
+        StartCoroutine(getTexture());
     }
 
     // Update is called once per frame
@@ -20,7 +20,7 @@ public class FetchImage : MonoBehaviour
     {
     }
 
-    IEnumerator getTexture(RawImage testImage) {
+    IEnumerator getTexture() {
         // string testURL = "http://127.0.0.1:8000/media/test/2022/10/28/profile.PNG";
         string testURL = "https://source.unsplash.com/user/c_v_r/100x100";
         UnityWebRequest www = UnityWebRequestTexture.GetTexture(testURL);
