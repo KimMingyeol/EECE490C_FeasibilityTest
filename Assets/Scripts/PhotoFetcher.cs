@@ -28,6 +28,8 @@ public class PhotoFetcher : MonoBehaviour {
     }
 
     private IEnumerator fetchAndDisplayPhotos(string photoURL, GameObject photoPlane) {
+        Debug.Log("Start fetching photo from " + photoURL);
+
         UnityWebRequest fetchRequest = UnityWebRequestTexture.GetTexture(photoURL);
         yield return fetchRequest.SendWebRequest();
 
@@ -41,5 +43,7 @@ public class PhotoFetcher : MonoBehaviour {
             Debug.Log("Error while fetching Photos!");
         }
 
+        Debug.Log("Finish fetching photo from " + photoURL);
+        fetchRequest.Dispose(); // else, memory leak?
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
 
@@ -23,37 +24,46 @@ public class PostSerializer {
 }
 
 public class FetchPostsSerializer {
-    public string nickname;
+    public string username;
     public List<PostSerializer> posts;
 }
 
 public class PostFetcher : MonoBehaviour {
-    private string hostURL;
+    public Button fetchPostsButton;
+    private string hostURL = "http://127.0.0.1:8000";
     private PhotoFetcher photoFetcher;
     private List<string> photoURLs;
 
     void Start() {
-        hostURL = "http://127.0.0.1:8000";
         photoFetcher = transform.GetChild(0).GetComponent<PhotoFetcher>();
         photoURLs = new List<string>();
+        fetchPostsButton.onClick.AddListener(initiateFetchPosts);
         // photoURLs.Clear();
-        StartCoroutine(fetchPosts("Nkmg"));
     }
 
     void Update() {
 
     }
 
-    private IEnumerator fetchPosts(string nickname) {
+    private void initiateFetchPosts() {
+        if (!UserState.logIn) {
+            Debug.Log("Fetch Posts: NOT YET!");
+            return;
+        }
+
         string api = "/photo_server/fetch/";
-        string requestURL = hostURL + api + "?nickname=" + nickname;
-        UnityWebRequest fetchRequest = UnityWebRequest.Get(requestURL);
-        Debug.Log("Sending Request to " + requestURL);
+        StartCoroutine(fetchPosts(hostURL + api + "?username=" + UserState.username));
+    }
+
+    private IEnumerator fetchPosts(string fetchPostsURL) {
+        UnityWebRequest fetchRequest = UnityWebRequest.Get(fetchPostsURL);
+        fetchRequest.SetRequestHeader("Authorization", "Bearer " + UserState.token);
+        Debug.Log("Sending Request to " + fetchPostsURL);
         yield return fetchRequest.SendWebRequest();
 
         if (fetchRequest.result == UnityWebRequest.Result.Success) {
             FetchPostsSerializer fetchPostsSerializer = JsonConvert.DeserializeObject<FetchPostsSerializer>(fetchRequest.downloadHandler.text);
-            Debug.Log("Requester: " + fetchPostsSerializer.nickname);
+            Debug.Log("Requester: " + fetchPostsSerializer.username);
             foreach (PostSerializer post in fetchPostsSerializer.posts) {
                 Debug.Log("Post #" + post.id.ToString());
                 foreach (UserSerializer heart_user in post.heart_users) {
@@ -71,5 +81,7 @@ public class PostFetcher : MonoBehaviour {
         } else {
             Debug.Log("Error while fetching Posts!");
         }
+
+        fetchRequest.Dispose(); // else, memory leak?
     }
 }
